@@ -1,30 +1,14 @@
 import csv
 import re
 
+from utils import group_n, parse_time
+
 
 __all__ = ['QuestsParser']
 
 
-MONTH = dict([(s, i + 1) for (i, s) in enumerate([
-    'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
-])])
-
-TIME_REGEX = re.compile(r'(\d+)\s+(\w+)\s+(\d+)\s+(\d+):(\d+)')
-
-
 def parse_name(name, surname):
     return frozenset(name.split()) | frozenset(surname.split())
-
-
-def parse_time(time):
-    parsed = TIME_REGEX.match(time)
-    return '{:>02}.{:>02}.{} {:>02}:{:>02}:00'.format(
-        parsed[1], MONTH[parsed[2]], parsed[3], parsed[4], parsed[5])
-
-
-def group_n(iterable, n):
-    return zip(*([iter(iterable)]*n))
 
 
 class QuestsParser:

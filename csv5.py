@@ -66,10 +66,6 @@ class Checkers:
         return False
 
     @staticmethod
-    def positive_int_or_na(value):
-        return value == 'NA' or Checkers.positive_int(value)
-
-    @staticmethod
     def nonnegative_int(value):
         with contextlib.suppress(ValueError):
             return int(value) >= 0
@@ -89,7 +85,7 @@ class Items:
     CONTENT_NAME = ('content_piece_name', Checkers.nonempty)
 
     MODULE_ID = ('module_id', Checkers.nonempty)
-    MODULE_ORDER = ('module_order', Checkers.positive_int_or_na)
+    MODULE_ORDER = ('module_order', Checkers.positive_int)
     MODULE_NAME = ('module_name', Checkers.nonempty)
 
     SCORE = ('score', Checkers.nonnegative_int)
@@ -158,6 +154,6 @@ class CSV5(BaseCSVProcessor):
 
 
 def process_all_csvs(prefix, encoding, parser):
-    for processor in (CSV1, CSV2, CSV3, CSV4, CSV5):
+    for processor in (CSV4, CSV1, CSV2, CSV3, CSV5):
         with processor(prefix, encoding) as p:
             p.process(parser)

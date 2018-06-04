@@ -3,21 +3,14 @@ import functools
 import logging
 import re
 
+from utils import parse_time
+
 
 __all__ = ['LogsParser']
 
 
-TIME_REGEX = re.compile(r'(\d+)/(\d+)/(\d+),\s+(\d+):(\d+)')
-
-
 def parse_user(username):
     return frozenset(username.split())
-
-
-def parse_time(time):
-    parsed = TIME_REGEX.match(time)
-    return '{:>02}.{:>02}.{} {:>02}:{:>02}:00'.format(
-        parsed[1], parsed[2], parsed[3], parsed[4], parsed[5])
 
 
 class LogsParser:
@@ -25,12 +18,12 @@ class LogsParser:
         r"The user with id '(\w+)' viewed the '(\w+)' activity"
         r" with course module id '(\w+)'")
 
-    def __init__(self, log):
+    def __init__(self, log, delimiter):
         self._processors = [self._process_view]
         self.users = {}
         self.modules = {}
         self.activity = []
-        self._parse(log)
+        self._parse(log, delimiter)
 
     def _process_view(self, item):
         match = self.VIEW_ACTIVITY_REGEX.match(item['Описание'])
@@ -41,8 +34,8 @@ class LogsParser:
         self.modules[match[3]] = item['Контекст события']
         self.activity.append((match[1], match[3], match[2]))
 
-    def _parse(self, log):
-        reader = csv.DictReader(log, delimiter=';')
+    def _parse(self, log, delimiter):
+        reader = csv.DictReader(log, delimiter=delimiter)
         for (i, item) in enumerate(reader):
             try:
                 for processor in self._processors:

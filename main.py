@@ -5,25 +5,31 @@ import os.path
 import sys
 
 import csv5
-import quests
 import logs
+import quests
+import struct
 from results import Parser
 
 
 def parse_args():
-    aparser = argparse.ArgumentParser()
-    aparser.add_argument(
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
         '-e', '--log-encoding', type=str, default='cp1251',
         help='Log file encoding')
-    aparser.add_argument(
+    parser.add_argument(
         '-E', '--quests-encoding', type=str, default='utf-8-sig',
         help='Quests file encoding')
-    aparser.add_argument(
+    parser.add_argument(
         '-l', '--logs', type=str, required=True, help='Log file')
-    aparser.add_argument(
+    parser.add_argument(
+        '-s', '--struct', type=str, help='Course structure XML file')
+    parser.add_argument(
+        '-d', '--delimiter', type=str, default=';',
+        help='Log columns delimiter')
+    parser.add_argument(
         '-q', '--quests', nargs='+', type=str, help='Quest answers log')
-    aparser.add_argument('output', type=str, help='Output csv prefix')
-    return aparser.parse_args()
+    parser.add_argument('output', type=str, help='Output csv prefix')
+    return parser.parse_args()
 
 
 def main():
@@ -36,12 +42,16 @@ def main():
             questsp[filename] = quests.QuestsParser(f)
 
     with open(params.logs, encoding=params.log_encoding) as f:
-        logp = logs.LogsParser(f)
+        logp = logs.LogsParser(f, params.delimiter)
+
+    with open(params.struct, encoding='utf-8-sig') as f:
+        course = struct.StructParser(f)
 
     if os.path.isdir(params.output):
         params.output = os.path.join(params.output, 'csv')
 
-    csv5.process_all_csvs(params.output, 'utf-8', Parser(logp, questsp))
+    csv5.process_all_csvs(
+        params.output, 'utf-8', Parser(logp, questsp, course))
 
 if __name__ == '__main__':
     try:
