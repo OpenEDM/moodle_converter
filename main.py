@@ -4,11 +4,7 @@ import argparse
 import os.path
 import sys
 
-import csv5
-import logs
-import quests
-import struct
-from results import Parser
+import converter
 
 
 def parse_args():
@@ -35,23 +31,14 @@ def parse_args():
 def main():
     params = parse_args()
 
-    questsp = {}
-    for quest in (params.quests or []):
-        with open(quest, encoding=params.quests_encoding) as f:
-            filename = os.path.splitext(os.path.basename(quest))[0]
-            questsp[filename] = quests.QuestsParser(f)
-
-    with open(params.logs, encoding=params.log_encoding) as f:
-        logp = logs.LogsParser(f, params.delimiter)
-
-    with open(params.struct, encoding='utf-8-sig') as f:
-        course = struct.StructParser(f)
-
     if os.path.isdir(params.output):
         params.output = os.path.join(params.output, 'csv')
 
-    csv5.process_all_csvs(
-        params.output, 'utf-8', Parser(logp, questsp, course))
+    converter.convert(
+        params.logs, params.struct, params.quests,
+        params.quests_encoding, params.log_encoding, params.delimiter,
+        params.output)
+
 
 if __name__ == '__main__':
     try:
