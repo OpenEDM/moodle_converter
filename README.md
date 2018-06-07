@@ -68,7 +68,7 @@ converter.convert(
 1. Запустить парсер
 
     ```
-    $ python main.py --logs ../data/logs --struct ../data/imsmanifest.xml --quests ../data/Test1.csv ../data/Test2.csv csv
+    $ python main.py --logs ../data/logs --struct ../data/imsmanifest.xml --quests ../data/Test1.csv ../data/Test2.csv -- csv
     ```
 
     * Файл `../data/logs` — лог-файл Moodle
@@ -88,7 +88,7 @@ converter.convert(
 
 Для изменения каталога вывода результата его нужно передать последним аргументом при запуске:
 ```
-$ python main.py --logs ../data/logs --struct ../data/imsmanifest.xml --quests ../data/course_names my/catalog/
+$ python main.py --logs ../data/logs --struct ../data/imsmanifest.xml --quests ../data/Test1.csv ../data/Test2.csv -- my/catalog/
 ```
 
 Результатом будут файлы `my/catalog/csv{1..5}.csv`.
