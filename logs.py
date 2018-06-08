@@ -3,7 +3,7 @@ import functools
 import logging
 import re
 
-from utils import parse_time
+from utils import parse_time, parse_item
 
 
 __all__ = ['LogsParser']
@@ -15,14 +15,16 @@ def parse_user(username):
 
 class LogsParser:
     VIEW_ACTIVITY_REGEX = re.compile(
-        r"The user with id '(\w+)' viewed the '(\w+)' activity"
-        r" with course module id '(\w+)'")
+        r"The user with id '(?P<user_id>\w+)' viewed the"
+        r" '(?P<activity>\w+)' activity with course module"
+        r" id '(?P<module_id>\w+)'")
 
     def __init__(self, log, delimiter):
-        self._processors = [self._process_view]
+        self._processors = [self._process_view, self._process_course]
         self.users = {}
         self.modules = {}
         self.activity = []
+        self.course = ''
         self._parse(log, delimiter)
 
     def _process_view(self, item):
@@ -30,9 +32,19 @@ class LogsParser:
         if not match:
             return
 
-        self.users[match[1]] = parse_user(item['Полное имя пользователя'])
-        self.modules[match[3]] = item['Контекст события']
-        self.activity.append((match[1], match[3], match[2]))
+        if not match['activity'] in ('forum', 'page', 'quiz', 'resource'):
+            return
+
+        self.users[match['user_id']] = parse_user(
+            item['Полное имя пользователя'])
+        self.modules[match['module_id']] = item['Контекст события']
+        self.activity.append(
+            (match['user_id'], match['module_id'], match['activity']))
+
+    def _process_course(self, item):
+        context = item['Контекст события']
+        if context.startswith('Курс: '):
+            self.course = context[5:].strip(', ')
 
     def _parse(self, log, delimiter):
         reader = csv.DictReader(log, delimiter=delimiter)
@@ -54,6 +66,11 @@ class LogsParser:
                 return userid
 
     def get_tests(self):
-        for (testid, testname) in self.modules.items():
-            if testname.startswith('Тест: '):
-                yield (testname[6:].strip(), testid)
+        for (test_id, test_name) in self.modules.items():
+            if test_name.startswith('Тест: '):
+                yield (parse_item(test_name), test_id)
+
+    def get_content(self):
+        for (content_id, content_name) in self.modules.items():
+            if not content_name.startswith('Тест: '):
+                yield (parse_item(content_name), content_id)

@@ -1,6 +1,6 @@
 import collections
 
-from utils import string_distance
+from utils import string_distance, parse_item
 
 
 __all__ = ['Parser']
@@ -34,6 +34,30 @@ class Parser:
     def _prepare(self):
         self.test_ids = FuzzyDict(self._logs.get_tests())
         self.m_ids = {}
+
+        self._modules = {}
+        for (_, moduleid, activity) in self._logs.activity:
+            if activity != 'quiz' and (moduleid in self._logs.modules):
+                self._modules[moduleid] = (
+                    activity, self._logs.modules[moduleid])
+
+        # Dummy loop for generate IDs
+        exist_items = set()
+        for (moduleid, (_, name)) in self._modules.items():
+            if name == 'Другие':
+                continue
+            info = self._struct.items.get(parse_item(name), None)
+            if info:
+                exist_items.add(info[0])
+        for (_, (item, _)) in self._struct.items.items():
+            if item in exist_items:
+                self._get_id(item)
+
+    def get_course_info(self):
+        return {
+            'short_name': self._logs.course,
+            'long_name': self._logs.course
+        }
 
     def get_student_solutions(self):
         for (qname, info) in self._quests.items():
@@ -80,32 +104,19 @@ class Parser:
 
             for (idx, text) in enumerate(info.quests):
                 qid = self.test_ids[qname]
+                test_name = self._logs.modules[qid][6:]
+                (mid, mname) = self._struct.items.get(
+                    test_name, (qid, test_name))
                 yield ("ID_{:0>10}_{:0>10}".format(qid, idx),
-                       'assign', text, qid, self._get_id(qid), 'NA')
+                       'assign', text, mid, self._get_id(mid), mname)
 
     def get_content(self):
-        modules = {}
-        for (_, moduleid, activity) in self._logs.activity:
-            if activity != 'quiz' and (moduleid in self._logs.modules):
-                modules[moduleid] = (activity, self._logs.modules[moduleid])
-
-        # Dummy loop for generate IDs
-        exist_items = set()
-        for (moduleid, (module_type, name)) in modules.items():
-            if module_type == 'resource' and name.startswith('Файл: '):
-                info = self._struct.items.get(name[6:], None)
-                if info:
-                    exist_items.add(info[0])
-        for (_, (item, _)) in self._struct.items.items():
-            if item in exist_items:
-                self._get_id(item)
-
-        for (moduleid, (module_type, name)) in modules.items():
-            if module_type == 'resource' and name.startswith('Файл: '):
-                info = self._struct.items.get(name[6:], None)
-                if info:
-                    yield (moduleid, module_type, name,
-                           info[0], self._get_id(info[0]), info[1])
-                    continue
-            yield (moduleid, module_type, name, moduleid,
-                   self._get_id(moduleid), 'NA')
+        for (moduleid, (module_type, name)) in self._modules.items():
+            info = self._struct.items.get(parse_item(name), None)
+            if info:
+                yield (moduleid, module_type, name,
+                       info[0], self._get_id(info[0]), info[1])
+                continue
+            if name != 'Другие':
+                yield (moduleid, module_type, name, moduleid,
+                       self._get_id(moduleid), 'NA')

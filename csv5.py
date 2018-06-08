@@ -153,7 +153,16 @@ class CSV5(BaseCSVProcessor):
         self.writeiter(parser.get_assessments())
 
 
+class CourseInfoJSON(BaseProcessor):
+    def __init__(self, prefix, encoding):
+        super().__init__(
+            os.path.join(os.path.dirname(prefix), 'course.json'), encoding)
+
+    def process(self, parser):
+        json.dump(parser.get_course_info(), self._file)
+
+
 def process_all_csvs(prefix, encoding, parser):
-    for processor in (CSV4, CSV1, CSV2, CSV3, CSV5):
+    for processor in (CSV4, CSV1, CSV2, CSV3, CSV5, CourseInfoJSON):
         with processor(prefix, encoding) as p:
             p.process(parser)

@@ -1,7 +1,7 @@
 import contextlib
 import re
 
-__all__ = ['parse_time', 'group_n']
+__all__ = ['parse_time', 'group_n', 'parse_item']
 
 
 TIME_REGEX1 = re.compile(r'(\d+)/(\d+)/(\d+),\s+(\d+):(\d+)')
@@ -40,3 +40,7 @@ def string_distance(string1, string2):
                 prev_dist[j - 1] + int(string1[j - 1] != string2[i - 1]))
 
     return dist[-1]
+
+
+def parse_item(name):
+    return name.split(':', 1)[-1][1:]

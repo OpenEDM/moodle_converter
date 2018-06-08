@@ -10,7 +10,7 @@ import converter
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-e', '--log-encoding', type=str, default='cp1251',
+        '-e', '--log-encoding', type=str, default='utf-8-sig',
         help='Log file encoding')
     parser.add_argument(
         '-E', '--quests-encoding', type=str, default='utf-8-sig',
@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument(
         '-s', '--struct', type=str, help='Course structure XML file')
     parser.add_argument(
-        '-d', '--delimiter', type=str, default=';',
+        '-d', '--delimiter', type=str, default=',',
         help='Log columns delimiter')
     parser.add_argument(
         '-q', '--quests', nargs='+', type=str, help='Quest answers log')
