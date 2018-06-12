@@ -1,4 +1,5 @@
 import collections
+import logging
 
 from utils import string_distance, parse_item
 
@@ -46,10 +47,11 @@ class Parser:
         for (moduleid, (_, name)) in self._modules.items():
             if name == 'Другие':
                 continue
-            info = self._struct.items.get(parse_item(name), None)
+            info = self._struct.get_item(parse_item(name))
             if info:
                 exist_items.add(info[0])
-        for (_, (item, _)) in self._struct.items.items():
+
+        for (_, (item, _)) in self._struct.get_items():
             if item in exist_items:
                 self._get_id(item)
 
@@ -105,18 +107,20 @@ class Parser:
             for (idx, text) in enumerate(info.quests):
                 qid = self.test_ids[qname]
                 test_name = self._logs.modules[qid][6:]
-                (mid, mname) = self._struct.items.get(
+                (mid, mname) = self._struct.get_item(
                     test_name, (qid, test_name))
                 yield ("ID_{:0>10}_{:0>10}".format(qid, idx),
                        'assign', text, mid, self._get_id(mid), mname)
 
     def get_content(self):
         for (moduleid, (module_type, name)) in self._modules.items():
-            info = self._struct.items.get(parse_item(name), None)
+            info = self._struct.get_item(parse_item(name))
             if info:
                 yield (moduleid, module_type, name,
                        info[0], self._get_id(info[0]), info[1])
                 continue
             if name != 'Другие':
+                logging.warning(
+                    'Item "%s" not found in course structure.', name)
                 yield (moduleid, module_type, name, moduleid,
                        self._get_id(moduleid), 'NA')

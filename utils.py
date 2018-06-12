@@ -1,7 +1,8 @@
 import contextlib
+import itertools
 import re
 
-__all__ = ['parse_time', 'group_n', 'parse_item']
+__all__ = ['parse_time', 'group_n', 'parse_item', 'starts_with', 'nfind']
 
 
 TIME_REGEX1 = re.compile(r'(\d+)/(\d+)/(\d+),\s+(\d+):(\d+)')
@@ -44,3 +45,16 @@ def string_distance(string1, string2):
 
 def parse_item(name):
     return name.split(':', 1)[-1][1:]
+
+
+def starts_with(string, prefixes):
+    return any(string.startswith(prefix) for prefix in prefixes)
+
+
+def nfind(string, sub, n=1):
+    start = -1
+    for _ in range(n):
+        start = string.find(sub, start + 1)
+        if start < 0:
+            return -1
+    return start

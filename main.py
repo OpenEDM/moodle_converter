@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 import os.path
 import sys
 
@@ -33,6 +34,8 @@ def main():
 
     if os.path.isdir(params.output):
         params.output = os.path.join(params.output, 'csv')
+
+    logging.getLogger().setLevel(logging.INFO)
 
     converter.convert(
         params.logs, params.struct, params.quests,
