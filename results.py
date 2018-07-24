@@ -3,7 +3,6 @@ import logging
 
 from utils import string_distance, parse_item
 
-
 __all__ = ['Parser']
 
 
@@ -25,12 +24,18 @@ class FuzzyDict(dict):
             raise
 
 
+def add_id(x):
+    return 'ID_' + str(x)
+
+
 class Parser:
-    def __init__(self, logs, quests, struct):
+    def __init__(self, logs, quests, struct, workshops):
         self._logs = logs
         self._quests = quests
         self._struct = struct
         self._prepare()
+        self.item_id_by_text = dict()
+        self.workshops = workshops
 
     def _prepare(self):
         self.test_ids = FuzzyDict(self._logs.get_tests())
@@ -51,7 +56,7 @@ class Parser:
             if info:
                 exist_items.add(info[0])
 
-        for (_, (item, _)) in self._struct.get_items():
+        for (_, (item, _, _, _)) in self._struct.get_items():
             if item in exist_items:
                 self._get_id(item)
 
@@ -72,8 +77,8 @@ class Parser:
                     continue
 
                 for (index, value) in enumerate(results):
-                    yield (userid, "ID_{:0>10}_{:0>10}".format(
-                        self.test_ids[qname], index), int(value), time)
+                    qid = self._struct.get_item(qname)[3]
+                    yield (userid, add_id(qid), int(value), time)
 
     def get_student_content(self):
         viewed = collections.defaultdict(set)
@@ -90,9 +95,27 @@ class Parser:
             for module in modules:
                 yield (user, module, int(module in viewed[user]))
 
+    @staticmethod
+    def clean_name(name: str) -> str:
+        return name.lstrip().rstrip().lower()
+
+    def get_item_id_by_name(self, name):
+        for key, value in self._logs.modules.items():
+            if value.endswith(name):
+                return key
+        return None
+
     def get_assessments(self):
-        if False:
-            yield
+        for workshop in self.workshops:
+            name = workshop.item_name
+            item_id = self.get_item_id_by_name(name)
+            if not item_id:
+                logging.warning('Not found item with name "{}"'.format(name))
+                continue
+            for cross_attempt in workshop.cross_attempts:
+                yield (cross_attempt['user_id'], add_id(item_id),
+                       cross_attempt['reviewer_id'], cross_attempt['score'],
+                       cross_attempt['max_score'])
 
     def _get_id(self, value):
         if value not in self.m_ids:
@@ -100,17 +123,20 @@ class Parser:
         return self.m_ids[value]
 
     def get_tasks(self):
+        item_ids = set()
         for (qname, info) in self._quests.items():
-            if qname not in self.test_ids:
-                continue
+            (mid, mname, item_type, item_id) = self._struct.get_item(qname)
+            if item_id not in item_ids:
+                item_ids.add(item_id)
+                yield (add_id(item_id), item_type, qname, mid, self._get_id(mid), mname)
 
-            for (idx, text) in enumerate(info.quests):
-                qid = self.test_ids[qname]
-                test_name = self._logs.modules[qid][6:]
-                (mid, mname) = self._struct.get_item(
-                    test_name, (qid, test_name))
-                yield ("ID_{:0>10}_{:0>10}".format(qid, idx),
-                       'assign', text, mid, self._get_id(mid), mname)
+        for workshop in self.workshops:
+            item_name = workshop.item_name
+            if not item_name:
+                continue
+            (mid, mname, item_type, item_id) = self._struct.get_item(item_name)
+            yield (add_id(item_id), item_type, item_name, mid, self._get_id(mid), mname)
+
 
     def get_content(self):
         for (moduleid, (module_type, name)) in self._modules.items():

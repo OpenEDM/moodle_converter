@@ -3,8 +3,7 @@ import functools
 import logging
 import re
 
-from utils import parse_time, parse_item
-
+from utils import parse_item
 
 __all__ = ['LogsParser']
 
@@ -24,6 +23,7 @@ class LogsParser:
         self.users = {}
         self.modules = {}
         self.activity = []
+        self.workshops = {}
         self.course = ''
         self._parse(log, delimiter)
 
@@ -32,12 +32,13 @@ class LogsParser:
         if not match:
             return
 
-        if not match['activity'] in ('forum', 'page', 'quiz', 'resource'):
+        if not match['activity'] in ('forum', 'page', 'quiz', 'resource', 'workshop'):
             return
 
         self.users[match['user_id']] = parse_user(
             item['Полное имя пользователя'])
         self.modules[match['module_id']] = item['Контекст события']
+
         self.activity.append(
             (match['user_id'], match['module_id'], match['activity']))
 

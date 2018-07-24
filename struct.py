@@ -6,35 +6,38 @@ import xml.etree.ElementTree as ET
 
 from utils import starts_with, nfind
 
-
 XMLNS_RE = re.compile(r' xmlns="[^"]+"')
 
 
 class StructParser:
     def __init__(self, struct):
         self.items = collections.OrderedDict()
+        self.modules = collections.OrderedDict()
         self._parse(struct)
 
     def _parse(self, struct):
         text = struct.read().replace('&nbsp;', '&#160;')
         tree = ET.fromstring(XMLNS_RE.sub('', text, count=1))
 
-        for child in tree.find(".//item[@identifier='root']"):
-            module_id = child.attrib['identifier']
-            module_name = child.find("./title").text.strip()
-            for item in child.findall(".//item/title"):
-                if not item.text:
-                    continue
+        for child in tree.find(".//sections"):
+            module_id = child.find('./sectionid').text
+            module_name = child.find('./title').text
+            self.modules[module_id] = module_name
 
-                if (item.text in self.items and
-                        self.items[item.text][0] != module_id):
-                    logging.warning(
-                        'Duplicate items: "%s". Second item (with'
-                        ' module_id="%s" and module_name="%s") will be skip',
-                        item.text, module_id, module_name)
-                    continue
-
-                self.items[item.text] = (module_id, module_name)
+        for child in tree.find(".//activities"):
+            module_id = child.find('./sectionid').text
+            item_type = child.find('./modulename').text
+            item_id = child.find('./moduleid').text
+            item_name = child.find("./title").text
+            module_name = self.modules.get(module_id, None)
+            if not module_name:
+                logging.warning(
+                    'Not found Module name for item. Item id: "{}"; '
+                    'Item name: "{}"; Module name: "{}"'.format(item_id,
+                                                                item_name,
+                                                                module_name))
+                continue
+            self.items[item_name] = (module_id, module_name, item_type, item_id)
 
     def get_items(self):
         return self.items.items()
@@ -42,9 +45,6 @@ class StructParser:
     def get_item(self, text, default=None):
         if text in self.items:
             return self.items[text]
-
-        if default:
-            return self._guess_item(text) or default
 
         return default
 

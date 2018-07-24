@@ -8,13 +8,15 @@
 import converter
 
 converter.convert(
-    logs_file,       # Путь к файлу с логами
-    struct_file,     # Путь к XML-файлу со структурой курса
-    quests_file,     # Список путей к файлам с ответами
-    quests_encoding, # Кодировка файлов с ответами
-    log_encoding,    # Кодировка файла логов
-    delimiter,       # CSV-разделитель файла с логами
-    output           # Каталог, в который выводить результат
+    logs_file,           # Путь к файлу с логами
+    struct_file,         # Путь к XML-файлу со структурой курса
+    quests_file,         # Список путей к файлам с ответами
+    workshop_files       # Список путей к файлам c информацией о перекрестном оценивании
+    workshop_encoding    # Кодировка файлов workshop.xml
+    quests_encoding,     # Кодировка файлов с ответами
+    log_encoding,        # Кодировка файла логов
+    delimiter,           # CSV-разделитель файла с логами
+    output               # Каталог, в который выводить результат
 )
 ```
 
@@ -41,7 +43,7 @@ converter.convert(
     * Название события
     * Описание
 
-1. Файлы ответов студентов
+2. Файлы ответов студентов
 
     Файл имеет формат CSV (с названиями колонок) с разделителем `,`. Колонки должны иметь названия:
     * Фамилия
@@ -68,12 +70,13 @@ converter.convert(
 1. Запустить парсер
 
     ```
-    $ python main.py --logs ../data/logs --struct ../data/imsmanifest.xml --quests ../data/Test1.csv ../data/Test2.csv -- csv
+    $ python main.py --logs ../data/logs --struct ../data/imsmanifest.xml --quests ../data/Test1.csv ../data/Test2.csv --workshops ../data/workshop1.xml ../data/workshop2.xml -- csv
     ```
 
     * Файл `../data/logs` — лог-файл Moodle
     * Файл `../data/imsmanifest.xml` — файл со структурой курса
     * Файлы `../data/Test1.csv`, `../data/Test2.csv` — файлы ответов студентов (на тесты `Test1` и `Test2`)
+    * Файлы `../data/workshop1.xml`, `../data/workshop2.xml` — файлы с информацией о перекрестном оценивании
 
 1. Результатом работы будут файлы `csv{1..5}.csv` в текущем каталоге.
 
@@ -81,6 +84,7 @@ converter.convert(
 
 * Кодировка лог-файла: `-e utf8` (по умолчанию используется utf-8 с BOM)
 * Кодировка файлов с ответами: `-E cp1251` (по умолчанию используется utf-8 с BOM)
+* Кодировка файлов workshop.xml : `--workshops-encoding utf8` (по умолчанию используется utf-8 с BOM)
 
 При использовании парсера в параметре `-d` можно указать CSV-разделитель в логах.
 

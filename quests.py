@@ -1,8 +1,6 @@
 import csv
-import re
 
 from utils import group_n, parse_time
-
 
 __all__ = ['QuestsParser']
 
