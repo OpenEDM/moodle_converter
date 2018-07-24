@@ -71,6 +71,12 @@ class Checkers:
             return int(value) >= 0
         return False
 
+    @staticmethod
+    def positive_float(value):
+        with contextlib.suppress(ValueError):
+            return float(value) >= 0
+        return False
+
 
 class Items:
     USER_ID = ('user_id', Checkers.nonempty)
@@ -88,8 +94,8 @@ class Items:
     MODULE_ORDER = ('module_order', Checkers.positive_int)
     MODULE_NAME = ('module_name', Checkers.nonempty)
 
-    SCORE = ('score', Checkers.nonnegative_int)
-    MAX_SCORE = ('max_score', Checkers.positive_int)
+    SCORE = ('score', Checkers.positive_float)
+    MAX_SCORE = ('max_score', Checkers.positive_float)
 
     CORRECT = ('correct', Checkers.zero_or_one)
     VIEWED = ('viewed', Checkers.zero_or_one)
