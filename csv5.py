@@ -6,7 +6,6 @@ import logging
 import operator
 import os.path
 
-
 __all__ = ['process_all_csvs']
 
 

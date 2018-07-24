@@ -6,7 +6,6 @@ import xml.etree.ElementTree as ET
 
 from utils import starts_with, nfind
 
-
 XMLNS_RE = re.compile(r' xmlns="[^"]+"')
 
 
@@ -32,10 +31,13 @@ class StructParser:
             item_name = child.find("./title").text
             module_name = self.modules.get(module_id, None)
             if not module_name:
-                logging.warning('Not found Module name for item. Item id: "{}"; Item name: "{}"; Module name: "{}"')
+                logging.warning(
+                    'Not found Module name for item. Item id: "{}"; '
+                    'Item name: "{}"; Module name: "{}"'.format(item_id,
+                                                                item_name,
+                                                                module_name))
                 continue
             self.items[item_name] = (module_id, module_name, item_type, item_id)
-
 
     def get_items(self):
         return self.items.items()
@@ -43,9 +45,6 @@ class StructParser:
     def get_item(self, text, default=None):
         if text in self.items:
             return self.items[text]
-
-        # if default:
-        #     return self._guess_item(text) or default
 
         return default
 

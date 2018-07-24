@@ -20,7 +20,7 @@ def parse_args():
         '--workshops-encoding', type=str, default='utf-8-sig',
         help='Workshop files encoding')
     parser.add_argument(
-        '-w', '--workshops', nargs='+', type=str, required=True,
+        '-w', '--workshops', nargs='+', type=str,
         help='workshop.xml files'
     )
     parser.add_argument(
@@ -43,7 +43,6 @@ def main():
         params.output = os.path.join(params.output, 'csv')
 
     logging.getLogger().setLevel(logging.INFO)
-    print(params)
     converter.convert(
         params.logs, params.struct, params.quests, params.workshops,
         params.workshops_encoding, params.quests_encoding, params.log_encoding,
@@ -51,9 +50,4 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        sys.exit(main())
-    except Exception as e:
-        # print(e, file=sys.stderr)
-        # sys.exit(1)
-        raise e
+    sys.exit(main())

@@ -1,5 +1,4 @@
 import contextlib
-import itertools
 import re
 
 __all__ = ['parse_time', 'group_n', 'parse_item', 'starts_with', 'nfind']

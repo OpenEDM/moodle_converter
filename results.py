@@ -3,7 +3,6 @@ import logging
 
 from utils import string_distance, parse_item
 
-
 __all__ = ['Parser']
 
 
