@@ -70,11 +70,11 @@ converter.convert(
 1. Запустить парсер
 
     ```
-    $ python main.py --logs ../data/logs --struct ../data/imsmanifest.xml --quests ../data/Test1.csv ../data/Test2.csv --workshops ../data/workshop1.xml ../data/workshop2.xml -- csv
+    $ python main.py --logs ../data/logs --struct ../data/moodle_backup.xml --quests ../data/Test1.csv ../data/Test2.csv --workshops ../data/workshop1.xml ../data/workshop2.xml -- csv
     ```
 
     * Файл `../data/logs` — лог-файл Moodle
-    * Файл `../data/imsmanifest.xml` — файл со структурой курса
+    * Файл `../data/moodle_backup.xml` — файл со структурой курса
     * Файлы `../data/Test1.csv`, `../data/Test2.csv` — файлы ответов студентов (на тесты `Test1` и `Test2`)
     * Файлы `../data/workshop1.xml`, `../data/workshop2.xml` — файлы с информацией о перекрестном оценивании
 
@@ -92,7 +92,7 @@ converter.convert(
 
 Для изменения каталога вывода результата его нужно передать последним аргументом при запуске:
 ```
-$ python main.py --logs ../data/logs --struct ../data/imsmanifest.xml --quests ../data/Test1.csv ../data/Test2.csv -- my/catalog/
+$ python main.py --logs ../data/logs --struct ../data/moodle_backup.xml --quests ../data/Test1.csv ../data/Test2.csv -- my/catalog/
 ```
 
 Результатом будут файлы `my/catalog/csv{1..5}.csv`.
