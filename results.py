@@ -1,5 +1,6 @@
 import collections
 import logging
+from collections import OrderedDict
 
 from utils import string_distance, parse_item
 
@@ -24,7 +25,7 @@ class FuzzyDict(dict):
             raise
 
 
-def add_id(x):
+def add_id(x) -> str:
     return 'ID_' + str(x)
 
 
@@ -36,6 +37,7 @@ class Parser:
         self._prepare()
         self.item_id_by_text = dict()
         self.workshops = workshops
+        self.task_ids = OrderedDict()
 
     def _prepare(self):
         self.test_ids = FuzzyDict(self._logs.get_tests())
@@ -66,19 +68,33 @@ class Parser:
             'long_name': self._logs.course
         }
 
+    def get_task_id(self, task_name, module_name):
+        name = task_name+module_name
+        if name not in self.task_ids:
+            if not self.task_ids:
+                last_id = 0
+            else:
+                last_name = next(reversed(self.task_ids))
+                last_id = self.task_ids[last_name]
+            self.task_ids[name] = last_id + 1
+        return self.task_ids[name]
+
     def get_student_solutions(self):
-        for (qname, info) in self._quests.items():
-            if qname not in self.test_ids:
+        for (module_name, info) in self._quests.items():
+            if module_name not in self.test_ids:
                 continue
 
             for (user, time, *results) in info.answers:
-                userid = self._logs.get_user_id(user)
-                if not userid:
+                user_id = self._logs.get_user_id(user)
+                if not user_id:
                     continue
 
                 for (index, value) in enumerate(results):
-                    qid = self._struct.get_item(qname)[3]
-                    yield (userid, add_id(qid), int(value), time)
+                    if index >= len(info.quest_headers):
+                        break
+                    task_name = info.quest_headers[index]
+                    task_id = add_id(self.get_task_id(task_name, module_name))
+                    yield (user_id, task_id, int(value), time)
 
     def get_student_content(self):
         viewed = collections.defaultdict(set)
@@ -123,12 +139,13 @@ class Parser:
         return self.m_ids[value]
 
     def get_tasks(self):
-        item_ids = set()
-        for (qname, info) in self._quests.items():
-            (mid, mname, item_type, item_id) = self._struct.get_item(qname)
-            if item_id not in item_ids:
-                item_ids.add(item_id)
-                yield (add_id(item_id), item_type, qname, mid, self._get_id(mid), mname)
+        for (test_name, info) in self._quests.items():
+            if test_name not in self.test_ids:
+                continue
+            for (i, task_name) in enumerate(info.quest_headers):
+                task_id = self.get_task_id(task_name, test_name)
+                (mid, mname, item_type, item_id) = self._struct.get_item(test_name)
+                yield (add_id(task_id), 'assign', task_name, item_id, self._get_id(test_name), test_name)
 
         for workshop in self.workshops:
             item_name = workshop.item_name
@@ -136,7 +153,6 @@ class Parser:
                 continue
             (mid, mname, item_type, item_id) = self._struct.get_item(item_name)
             yield (add_id(item_id), item_type, item_name, mid, self._get_id(mid), mname)
-
 
     def get_content(self):
         for (moduleid, (module_type, name)) in self._modules.items():

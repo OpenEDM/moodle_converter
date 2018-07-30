@@ -13,11 +13,14 @@ class QuestsParser:
     def __init__(self, quests):
         self.answers = []
         self.quests = []
+        self.quest_headers = []
         self._parse(quests)
 
     def _parse(self, quests):
         reader = csv.reader(quests, delimiter=',')
-        next(reader)
+        headers = next(reader)
+        if headers:
+            self.quest_headers = headers[10::3]
 
         for (name, surname, _, _, _, _, time, _, _, _, *answers) in reader:
             quests = []
