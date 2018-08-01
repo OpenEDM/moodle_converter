@@ -145,7 +145,7 @@ class Parser:
             for (i, task_name) in enumerate(info.quest_headers):
                 task_id = self.get_task_id(task_name, test_name)
                 (mid, mname, item_type, item_id) = self._struct.get_item(test_name)
-                yield (add_id(task_id), 'assign', task_name, item_id, self._get_id(test_name), test_name)
+                yield (add_id(task_id), 'assign', task_name, mid, self._get_id(mid), mname)
 
         for workshop in self.workshops:
             item_name = workshop.item_name
