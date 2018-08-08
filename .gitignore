@@ -101,7 +101,7 @@ ENV/
 # mypy
 .mypy_cache/
 
- User-specific stuff:
+ User-specific stuff
 .idea/workspace.xml
 .idea/tasks.xml
 
@@ -128,4 +128,5 @@ ENV/
 # mpeltonen/sbt-idea plugin
 .idea_modules/
 
-data/
+data*/
+out*/

@@ -13,6 +13,7 @@ class StructParser:
     def __init__(self, struct):
         self.items = collections.OrderedDict()
         self.modules = collections.OrderedDict()
+        self.module_order = collections.OrderedDict
         self._parse(struct)
 
     def _parse(self, struct):
@@ -23,6 +24,7 @@ class StructParser:
             module_id = child.find('./sectionid').text
             module_name = child.find('./title').text
             self.modules[module_id] = module_name
+
 
         for child in tree.find(".//activities"):
             module_id = child.find('./sectionid').text
@@ -37,7 +39,8 @@ class StructParser:
                                                                 item_name,
                                                                 module_name))
                 continue
-            self.items[item_name] = (module_id, module_name, item_type, item_id)
+            module_order = list(self.modules.keys()).index(module_id)
+            self.items[item_name] = (module_id, module_name, module_order+1, item_type, item_id)
 
     def get_items(self):
         return self.items.items()
@@ -45,7 +48,11 @@ class StructParser:
     def get_item(self, text, default=None):
         if text in self.items:
             return self.items[text]
-
+        else:
+            for key, value in self.items.items():
+                clean_key = key.replace('"', '').replace('\'', '')
+                if clean_key == key:
+                    return value
         return default
 
     @functools.lru_cache()

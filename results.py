@@ -58,7 +58,7 @@ class Parser:
             if info:
                 exist_items.add(info[0])
 
-        for (_, (item, _, _, _)) in self._struct.get_items():
+        for (_, (item, _, _, _, _)) in self._struct.get_items():
             if item in exist_items:
                 self._get_id(item)
 
@@ -109,7 +109,7 @@ class Parser:
 
         for user in users:
             for module in modules:
-                yield (user, module, int(module in viewed[user]))
+                yield (user, add_id(module), int(module in viewed[user]))
 
     @staticmethod
     def clean_name(name: str) -> str:
@@ -144,25 +144,25 @@ class Parser:
                 continue
             for (i, task_name) in enumerate(info.quest_headers):
                 task_id = self.get_task_id(task_name, test_name)
-                (mid, mname, item_type, item_id) = self._struct.get_item(test_name)
-                yield (add_id(task_id), 'assign', task_name, mid, self._get_id(mid), mname)
+                (mid, mname, module_order, item_type, item_id) = self._struct.get_item(test_name)
+                yield (add_id(task_id), 'assign', task_name, mid, module_order, mname)
 
         for workshop in self.workshops:
             item_name = workshop.item_name
             if not item_name:
                 continue
-            (mid, mname, item_type, item_id) = self._struct.get_item(item_name)
-            yield (add_id(item_id), item_type, item_name, mid, self._get_id(mid), mname)
+            (mid, mname, module_order, item_type, item_id) = self._struct.get_item(item_name)
+            yield (add_id(item_id), item_type, item_name, mid, module_order, mname)
 
     def get_content(self):
         for (moduleid, (module_type, name)) in self._modules.items():
             info = self._struct.get_item(parse_item(name))
             if info:
-                yield (moduleid, module_type, name,
-                       info[0], self._get_id(info[0]), info[1])
+                yield (add_id(moduleid), module_type, name,
+                       info[0], info[2], info[1])
                 continue
             if name != 'Другие':
                 logging.warning(
                     'Item "%s" not found in course structure.', name)
-                yield (moduleid, module_type, name, moduleid,
+                yield (add_id(moduleid), module_type, name, moduleid,
                        self._get_id(moduleid), 'NA')

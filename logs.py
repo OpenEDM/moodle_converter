@@ -17,6 +17,11 @@ class LogsParser:
         r"The user with id '(?P<user_id>\w+)' viewed the"
         r" '(?P<activity>\w+)' activity with course module"
         r" id '(?P<module_id>\w+)'")
+    CONTENT_REGEX = re.compile(
+        r"The user with id '(?P<user_id>\w+)' has viewed the content page "
+        r"with id '16320' in the lesson activity "
+        r"with course module id '(?P<module_id>\w+)'."
+    )
 
     def __init__(self, log, delimiter):
         self._processors = [self._process_view, self._process_course]
@@ -28,19 +33,29 @@ class LogsParser:
         self._parse(log, delimiter)
 
     def _process_view(self, item):
-        match = self.VIEW_ACTIVITY_REGEX.match(item['Описание'])
-        if not match:
+        activity_match = self.VIEW_ACTIVITY_REGEX.match(item['Описание'])
+        content_match = self.CONTENT_REGEX.match(item['Описание'])
+        if activity_match:
+            if not activity_match['activity'] in (
+                    'forum', 'page', 'quiz', 'resource', 'workshop', 'lesson'):
+                return
+
+            content_piece_type = activity_match['activity']
+            user_id = activity_match['user_id']
+            module_id = activity_match['module_id']
+        elif content_match:
+            content_piece_type = 'content_page'
+            user_id = content_match['user_id']
+            module_id = content_match['module_id']
+        else:
             return
 
-        if not match['activity'] in ('forum', 'page', 'quiz', 'resource', 'workshop'):
-            return
-
-        self.users[match['user_id']] = parse_user(
+        self.users[user_id] = parse_user(
             item['Полное имя пользователя'])
-        self.modules[match['module_id']] = item['Контекст события']
+        self.modules[module_id] = item['Контекст события']
 
         self.activity.append(
-            (match['user_id'], match['module_id'], match['activity']))
+            (user_id, module_id, content_piece_type))
 
     def _process_course(self, item):
         context = item['Контекст события']
@@ -56,6 +71,7 @@ class LogsParser:
             except Exception as e:
                 logging.warning(
                     'Error on process entry, line %d: %s. Skip', i + 2, e)
+                raise e
 
     @functools.lru_cache()
     def get_user_id(self, user):
